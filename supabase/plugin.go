@@ -19,12 +19,13 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			NewInstance: ConfigInstance,
 		},
 		TableMap: map[string]*plugin.Table{
-			"supabase_function":     tableSupabaseFunction(ctx),
-			"supabase_organization": tableSupabaseOrganization(ctx),
-			"supabase_project":      tableSupabaseProject(ctx),
-			"supabase_secret":       tableSupabaseSecret(ctx),
-			"supabase_api_key":      tableSupabaseAPIKey(ctx),
-			"supabase_bucket":       tableSupabaseBucket(ctx),
+			"supabase_function":         tableSupabaseFunction(ctx),
+			"supabase_organization":     tableSupabaseOrganization(ctx),
+			"supabase_project":          tableSupabaseProject(ctx),
+			"supabase_secret":           tableSupabaseSecret(ctx),
+			"supabase_api_key":          tableSupabaseAPIKey(ctx),
+			"supabase_bucket":           tableSupabaseBucket(ctx),
+			"supabase_security_advisor": tableSupabaseSecurityAdvisor(ctx),
 		},
 	}
 
