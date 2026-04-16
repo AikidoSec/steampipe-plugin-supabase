@@ -22,7 +22,6 @@ func tableSupabaseSecret(ctx context.Context) *plugin.Table {
 		},
 		Columns: []*plugin.Column{
 			{Name: "name", Type: proto.ColumnType_STRING, Description: "The name of the secret."},
-			{Name: "value", Type: proto.ColumnType_STRING, Description: "The secret value."},
 			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the function was last modified."},
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project."},
 
