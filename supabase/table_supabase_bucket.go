@@ -33,7 +33,7 @@ func tableSupabaseBucket(ctx context.Context) *plugin.Table {
 				Name:        "organization_id",
 				Type:        proto.ColumnType_STRING,
 				Description: "The organization ID.",
-				Hydrate:     getOrganizationIDForProjectIDFromSecret,
+				Hydrate:     getOrganizationIDForProjectIDFromBucket,
 				Transform:   transform.FromValue(),
 			},
 
