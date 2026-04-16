@@ -22,7 +22,6 @@ func tableSupabaseAPIKey(ctx context.Context) *plugin.Table {
 			Hydrate:       listSupabaseProjectAPIKeys,
 		},
 		Columns: []*plugin.Column{
-			{Name: "api_key", Type: proto.ColumnType_STRING, Description: "The API key.", Transform: transform.FromField("ApiKey").Transform(transformNullable)},
 			{Name: "id", Type: proto.ColumnType_STRING, Description: "The id of the API key.", Transform: transform.FromField("Id").Transform(transformNullable)},
 			{Name: "type", Type: proto.ColumnType_JSON, Description: "The type of the API key.", Transform: transform.FromField("Type").Transform(transformNullable)},
 			{Name: "prefix", Type: proto.ColumnType_STRING, Description: "The API key prefix.", Transform: transform.FromField("Prefix").Transform(transformNullable)},
