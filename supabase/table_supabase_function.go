@@ -2,6 +2,7 @@ package supabase
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/supabase/cli/pkg/api"
 	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
@@ -34,6 +35,29 @@ func tableSupabaseFunction(ctx context.Context) *plugin.Table {
 			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the function was last modified.", Transform: transform.FromField("UpdatedAt").Transform(transform.UnixMsToTimestamp)},
 			{Name: "verify_jwt", Type: proto.ColumnType_BOOL, Description: "If true, it allows users to verify the authenticity of JSON Web Tokens (JWTs) issued by Supabase Authentication."},
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project where the function is located."},
+			//{Name: "body", Type: proto.ColumnType_JSON, Description: "The function body.", Hydrate: getSupabaseFunctionBody, Transform: transform.FromValue()},
+
+			{
+				Name:        "organization_id",
+				Type:        proto.ColumnType_STRING,
+				Description: "The organization ID.",
+				Hydrate:     getOrganizationIDForProjectIDFromFunction,
+				Transform:   transform.FromValue(),
+			},
+
+			// Common steampipe columns
+			{
+				Name:        "akas",
+				Description: "Array of globally unique identifier strings (also known as) for the resource.",
+				Type:        proto.ColumnType_JSON,
+				Transform:   transform.FromValue().Transform(generateFunctionAKA).Transform(transform.EnsureStringArray),
+			},
+			{
+				Name:        "title",
+				Description: "Title of the resource.",
+				Type:        proto.ColumnType_STRING,
+				Transform:   transform.FromField("Name"),
+			},
 		},
 	}
 }
@@ -47,7 +71,7 @@ type Function struct {
 
 func listSupabaseFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get the project data
-	project := h.Item.(api.ProjectResponse)
+	project := h.Item.(api.V1ProjectWithDatabaseResponse)
 
 	// Create client
 	client, err := getClient(ctx, d)
@@ -56,7 +80,7 @@ func listSupabaseFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
-	resp, err := client.GetFunctionsWithResponse(ctx, project.Id)
+	resp, err := client.V1ListAllFunctionsWithResponse(ctx, project.Id)
 	if err != nil {
 		plugin.Logger(ctx).Error("supabase_function.listSupabaseFunctions", "query_error", err)
 		return nil, err
@@ -92,11 +116,42 @@ func getSupabaseFunction(ctx context.Context, d *plugin.QueryData, _ *plugin.Hyd
 		return nil, err
 	}
 
-	resp, err := client.GetFunctionWithResponse(ctx, projectID, slug)
+	resp, err := client.V1GetAFunctionWithResponse(ctx, projectID, slug)
 	if err != nil {
 		plugin.Logger(ctx).Error("supabase_function.getSupabaseFunction", "query_error", err)
 		return nil, err
 	}
 
 	return resp.JSON200, nil
+}
+
+func getSupabaseFunctionBody(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	fn := h.Item.(Function)
+
+	// Create client
+	client, err := getClient(ctx, d)
+	if err != nil {
+		plugin.Logger(ctx).Error("supabase_function.getSupabaseFunctionBody", "connection_error", err)
+		return nil, err
+	}
+
+	resp, err := client.V1GetAFunctionBodyWithResponse(ctx, fn.ProjectId, fn.Slug)
+	if err != nil {
+		plugin.Logger(ctx).Error("supabase_function.getSupabaseFunctionBody", "query_error", err)
+		return nil, err
+	}
+
+	return resp.JSON200, nil
+}
+
+func getOrganizationIDForProjectIDFromFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationIDForProjectID(ctx, d, h.Item.(Function).ProjectId)
+}
+
+func generateFunctionAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+	obj, ok := d.Value.(Function)
+	if !ok {
+		return nil, fmt.Errorf("could not cast value to transform")
+	}
+	return fmt.Sprintf("%s/function/%s", obj.ProjectId, obj.Id), nil
 }

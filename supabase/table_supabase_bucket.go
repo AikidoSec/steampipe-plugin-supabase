@@ -12,18 +12,21 @@ import (
 
 //// TABLE DEFINITION
 
-func tableSupabaseSecret(ctx context.Context) *plugin.Table {
+func tableSupabaseBucket(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
-		Name:        "supabase_secret",
-		Description: "Supabase Secret",
+		Name:        "supabase_bucket",
+		Description: "Supabase Bucket",
 		List: &plugin.ListConfig{
 			ParentHydrate: listSupabaseProjects,
-			Hydrate:       listSupabaseSecrets,
+			Hydrate:       listSupabaseBuckets,
 		},
 		Columns: []*plugin.Column{
-			{Name: "name", Type: proto.ColumnType_STRING, Description: "The name of the secret."},
-			{Name: "value", Type: proto.ColumnType_STRING, Description: "The secret value."},
-			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the function was last modified."},
+			{Name: "id", Type: proto.ColumnType_STRING, Description: "The id of the bucket."},
+			{Name: "name", Type: proto.ColumnType_STRING, Description: "The name of the bucket."},
+			{Name: "owner", Type: proto.ColumnType_STRING, Description: "The owner of the bucket."},
+			{Name: "public", Type: proto.ColumnType_BOOL, Description: "Whether or not the bucket is publicly accessible."},
+			{Name: "created_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the bucket was created."},
+			{Name: "updated_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the bucket was last modified."},
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project."},
 
 			{
@@ -51,32 +54,32 @@ func tableSupabaseSecret(ctx context.Context) *plugin.Table {
 	}
 }
 
-type Secret struct {
-	api.SecretResponse
+type Bucket struct {
+	api.V1StorageBucketResponse
 	ProjectId string
 }
 
 //// LIST FUNCTION
 
-func listSupabaseSecrets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+func listSupabaseBuckets(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	// Get the project data
 	project := h.Item.(api.V1ProjectWithDatabaseResponse)
 
 	// Create client
 	client, err := getClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_secret.listSupabaseSecrets", "connection_error", err)
+		plugin.Logger(ctx).Error("supabase_bucket.listSupabaseBuckets", "connection_error", err)
 		return nil, err
 	}
 
-	resp, err := client.V1ListAllSecretsWithResponse(ctx, project.Id)
+	resp, err := client.V1ListAllBucketsWithResponse(ctx, project.Id)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_secret.listSupabaseSecrets", "query_error", err)
+		plugin.Logger(ctx).Error("supabase_bucket.listSupabaseBuckets", "query_error", err)
 		return nil, err
 	}
 
 	for _, secret := range *resp.JSON200 {
-		d.StreamListItem(ctx, Secret{secret, project.Id})
+		d.StreamListItem(ctx, Bucket{secret, project.Id})
 
 		// Context can be cancelled due to manual cancellation or the limit has been hit
 		if d.RowsRemaining(ctx) == 0 {
@@ -89,11 +92,11 @@ func listSupabaseSecrets(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationIDForProjectIDFromSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return getOrganizationIDForProjectID(ctx, d, h.Item.(Secret).ProjectId)
+func getOrganizationIDForProjectIDFromBucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationIDForProjectID(ctx, d, h.Item.(Bucket).ProjectId)
 }
 
-func generateSecretAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func generateBucketAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {
 	secret, ok := d.Value.(Secret)
 	if !ok {
 		return nil, fmt.Errorf("could not cast value to transform")
