@@ -30,10 +30,10 @@ func tableSupabaseBucket(ctx context.Context) *plugin.Table {
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project."},
 
 			{
-				Name:        "organization_id",
+				Name:        "organization_slug",
 				Type:        proto.ColumnType_STRING,
-				Description: "The organization ID.",
-				Hydrate:     getOrganizationIDForProjectIDFromBucket,
+				Description: "The organization slug.",
+				Hydrate:     getOrganizationSlugForProjectIDFromBucket,
 				Transform:   transform.FromValue(),
 			},
 
@@ -42,7 +42,7 @@ func tableSupabaseBucket(ctx context.Context) *plugin.Table {
 				Name:        "akas",
 				Description: "Array of globally unique identifier strings (also known as) for the resource.",
 				Type:        proto.ColumnType_JSON,
-				Transform:   transform.FromValue().Transform(generateSecretAKA).Transform(transform.EnsureStringArray),
+				Transform:   transform.FromValue().Transform(generateBucketAKA).Transform(transform.EnsureStringArray),
 			},
 			{
 				Name:        "title",
@@ -92,14 +92,14 @@ func listSupabaseBuckets(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationIDForProjectIDFromBucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return getOrganizationIDForProjectID(ctx, d, h.Item.(Bucket).ProjectId)
+func getOrganizationSlugForProjectIDFromBucket(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationSlugForProjectID(ctx, d, h.Item.(Bucket).ProjectId)
 }
 
 func generateBucketAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-	secret, ok := d.Value.(Secret)
+	bucket, ok := d.Value.(Bucket)
 	if !ok {
 		return nil, fmt.Errorf("could not cast value to transform")
 	}
-	return fmt.Sprintf("%s/secret/%s", secret.ProjectId, secret.Name), nil
+	return fmt.Sprintf("%s/bucket/%s", bucket.ProjectId, bucket.Name), nil
 }

@@ -38,10 +38,10 @@ func tableSupabaseFunction(ctx context.Context) *plugin.Table {
 			//{Name: "body", Type: proto.ColumnType_JSON, Description: "The function body.", Hydrate: getSupabaseFunctionBody, Transform: transform.FromValue()},
 
 			{
-				Name:        "organization_id",
+				Name:        "organization_slug",
 				Type:        proto.ColumnType_STRING,
-				Description: "The organization ID.",
-				Hydrate:     getOrganizationIDForProjectIDFromFunction,
+				Description: "The organization slug.",
+				Hydrate:     getOrganizationSlugForProjectIDFromFunction,
 				Transform:   transform.FromValue(),
 			},
 
@@ -144,8 +144,8 @@ func getSupabaseFunctionBody(ctx context.Context, d *plugin.QueryData, h *plugin
 	return resp.JSON200, nil
 }
 
-func getOrganizationIDForProjectIDFromFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return getOrganizationIDForProjectID(ctx, d, h.Item.(Function).ProjectId)
+func getOrganizationSlugForProjectIDFromFunction(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationSlugForProjectID(ctx, d, h.Item.(Function).ProjectId)
 }
 
 func generateFunctionAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {

@@ -35,10 +35,10 @@ func tableSupabaseAPIKey(ctx context.Context) *plugin.Table {
 
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project where the function is located."},
 			{
-				Name:        "organization_id",
+				Name:        "organization_slug",
 				Type:        proto.ColumnType_STRING,
-				Description: "The organization ID.",
-				Hydrate:     getOrganizationIDForProjectIDFromAPIKey,
+				Description: "The organization slug.",
+				Hydrate:     getOrganizationSlugForProjectIDFromAPIKey,
 				Transform:   transform.FromValue(),
 			},
 
@@ -94,8 +94,8 @@ func listSupabaseProjectAPIKeys(ctx context.Context, d *plugin.QueryData, h *plu
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationIDForProjectIDFromAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return getOrganizationIDForProjectID(ctx, d, h.Item.(ProjectAPIKey).ProjectId)
+func getOrganizationSlugForProjectIDFromAPIKey(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationSlugForProjectID(ctx, d, h.Item.(ProjectAPIKey).ProjectId)
 }
 
 func generateAPIKeyAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {

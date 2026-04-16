@@ -21,7 +21,7 @@ func tableSupabaseProject(ctx context.Context) *plugin.Table {
 		Columns: []*plugin.Column{
 			{Name: "name", Type: proto.ColumnType_STRING, Description: "The display name of the project."},
 			{Name: "id", Type: proto.ColumnType_STRING, Description: "A unique identifier of the project."},
-			{Name: "organization_id", Type: proto.ColumnType_STRING, Description: "The organization ID."},
+			{Name: "organization_slug", Type: proto.ColumnType_STRING, Description: "The organization slug."},
 			{Name: "created_at", Type: proto.ColumnType_TIMESTAMP, Description: "The time when the project was created."},
 			{Name: "region", Type: proto.ColumnType_STRING, Description: "The project region."},
 			{Name: "database", Type: proto.ColumnType_JSON, Description: "The database information."},

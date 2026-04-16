@@ -71,22 +71,22 @@ func clientUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return apiClient, nil
 }
 
-func getOrganizationIDForProjectID(ctx context.Context, d *plugin.QueryData, projectID string) (interface{}, error) {
+func getOrganizationSlugForProjectID(ctx context.Context, d *plugin.QueryData, projectID string) (interface{}, error) {
 	client, err := getClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_shared.getOrganizationIDForProjectID", "connection_error", err)
+		plugin.Logger(ctx).Error("supabase_shared.getOrganizationSlugForProjectID", "connection_error", err)
 		return nil, err
 	}
 
 	resp, err := client.V1ListAllProjectsWithResponse(ctx)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_shared.getOrganizationIDForProjectID", "query_error", err)
+		plugin.Logger(ctx).Error("supabase_shared.getOrganizationSlugForProjectID", "query_error", err)
 		return nil, err
 	}
 
 	for _, proj := range *resp.JSON200 {
 		if proj.Id == projectID {
-			return proj.OrganizationId, nil
+			return proj.OrganizationSlug, nil
 		}
 	}
 

@@ -27,10 +27,10 @@ func tableSupabaseSecret(ctx context.Context) *plugin.Table {
 			{Name: "project_id", Type: proto.ColumnType_STRING, Description: "The ID of the project."},
 
 			{
-				Name:        "organization_id",
+				Name:        "organization_slug",
 				Type:        proto.ColumnType_STRING,
-				Description: "The organization ID.",
-				Hydrate:     getOrganizationIDForProjectIDFromSecret,
+				Description: "The organization slug.",
+				Hydrate:     getOrganizationSlugForProjectIDFromSecret,
 				Transform:   transform.FromValue(),
 			},
 
@@ -89,8 +89,8 @@ func listSupabaseSecrets(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 
 //// HYDRATE FUNCTIONS
 
-func getOrganizationIDForProjectIDFromSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	return getOrganizationIDForProjectID(ctx, d, h.Item.(Secret).ProjectId)
+func getOrganizationSlugForProjectIDFromSecret(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
+	return getOrganizationSlugForProjectID(ctx, d, h.Item.(Secret).ProjectId)
 }
 
 func generateSecretAKA(ctx context.Context, d *transform.TransformData) (interface{}, error) {
