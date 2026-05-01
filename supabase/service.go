@@ -51,7 +51,7 @@ func clientUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 		return nil, fmt.Errorf("access_token must be configured")
 	}
 
-	provider, err := securityprovider.NewSecurityProviderBearerToken(*supabaseConfig.AccessToken)
+	provider, err := securityprovider.NewSecurityProviderBearerToken(accessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +82,11 @@ func getOrganizationSlugForProjectID(ctx context.Context, d *plugin.QueryData, p
 	if err != nil {
 		plugin.Logger(ctx).Error("supabase_shared.getOrganizationSlugForProjectID", "query_error", err)
 		return nil, err
+	}
+
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_shared.getOrganizationSlugForProjectID", "status_code", resp.StatusCode(), "body", string(resp.Body))
+		return nil, nil
 	}
 
 	for _, proj := range *resp.JSON200 {

@@ -74,6 +74,11 @@ func listSupabaseSecrets(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_secret.listSupabaseSecrets", "status_code", resp.StatusCode(), "body", string(resp.Body), "project_id", project.Id)
+		return nil, nil
+	}
+
 	for _, secret := range *resp.JSON200 {
 		d.StreamListItem(ctx, Secret{secret, project.Id})
 

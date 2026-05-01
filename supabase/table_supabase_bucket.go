@@ -78,6 +78,11 @@ func listSupabaseBuckets(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 		return nil, err
 	}
 
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_bucket.listSupabaseBuckets", "status_code", resp.StatusCode(), "body", string(resp.Body), "project_id", project.Id)
+		return nil, nil
+	}
+
 	for _, secret := range *resp.JSON200 {
 		d.StreamListItem(ctx, Bucket{secret, project.Id})
 

@@ -86,6 +86,11 @@ func listSupabaseFunctions(ctx context.Context, d *plugin.QueryData, h *plugin.H
 		return nil, err
 	}
 
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_function.listSupabaseFunctions", "status_code", resp.StatusCode(), "body", string(resp.Body), "project_id", project.Id)
+		return nil, nil
+	}
+
 	for _, function := range *resp.JSON200 {
 		d.StreamListItem(ctx, Function{function, project.Id})
 

@@ -82,6 +82,11 @@ func listSupabaseProjectAPIKeys(ctx context.Context, d *plugin.QueryData, h *plu
 		return nil, err
 	}
 
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_project_api_key.listSupabaseProjectAPIKeys", "status_code", resp.StatusCode(), "body", string(resp.Body), "project_id", project.Id)
+		return nil, nil
+	}
+
 	for _, key := range *resp.JSON200 {
 		d.StreamListItem(ctx, ProjectAPIKey{key, project.Id})
 		if d.RowsRemaining(ctx) == 0 {
