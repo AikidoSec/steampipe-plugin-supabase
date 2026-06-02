@@ -123,6 +123,11 @@ func getProjectSSOProviders(ctx context.Context, d *plugin.QueryData, h *plugin.
 		return nil, err
 	}
 
+	if resp.JSON200 == nil {
+		plugin.Logger(ctx).Warn("supabase_project.getProjectSSOProviders", "status_code", resp.StatusCode(), "body", string(resp.Body))
+		return nil, nil
+	}
+
 	return resp.JSON200.Items, nil
 }
 
