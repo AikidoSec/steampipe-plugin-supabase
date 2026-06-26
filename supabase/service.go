@@ -71,29 +71,40 @@ func clientUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateD
 	return apiClient, nil
 }
 
-func getOrganizationSlugForProjectID(ctx context.Context, d *plugin.QueryData, projectID string) (interface{}, error) {
+// getProjectsMapCached returns a memoized map of projectID -> organizationSlug,
+// fetching from the API only once per connection.
+var getProjectsMapCached = plugin.HydrateFunc(getProjectsMapUncached).Memoize()
+
+func getProjectsMapUncached(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (any, error) {
 	client, err := getClient(ctx, d)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_shared.getOrganizationSlugForProjectID", "connection_error", err)
+		plugin.Logger(ctx).Error("supabase_shared.getProjectsMap", "connection_error", err)
 		return nil, err
 	}
 
 	resp, err := client.V1ListAllProjectsWithResponse(ctx)
 	if err != nil {
-		plugin.Logger(ctx).Error("supabase_shared.getOrganizationSlugForProjectID", "query_error", err)
+		plugin.Logger(ctx).Error("supabase_shared.getProjectsMap", "query_error", err)
 		return nil, err
 	}
 
 	if resp.JSON200 == nil {
-		plugin.Logger(ctx).Warn("supabase_shared.getOrganizationSlugForProjectID", "status_code", resp.StatusCode(), "body", string(resp.Body))
+		plugin.Logger(ctx).Warn("supabase_shared.getProjectsMap", "status_code", resp.StatusCode(), "body", string(resp.Body))
 		return nil, nil
 	}
 
+	m := make(map[string]string, len(*resp.JSON200))
 	for _, proj := range *resp.JSON200 {
-		if proj.Id == projectID {
-			return proj.OrganizationSlug, nil
-		}
+		m[proj.Id] = proj.OrganizationSlug
 	}
+	return m, nil
+}
 
-	return nil, nil
+func getOrganizationSlugForProjectID(ctx context.Context, d *plugin.QueryData, projectID string) (interface{}, error) {
+	cached, err := getProjectsMapCached(ctx, d, nil)
+	if err != nil || cached == nil {
+		return nil, err
+	}
+	m := cached.(map[string]string)
+	return m[projectID], nil
 }
