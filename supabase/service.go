@@ -105,6 +105,9 @@ func getOrganizationSlugForProjectID(ctx context.Context, d *plugin.QueryData, p
 	if err != nil || cached == nil {
 		return nil, err
 	}
-	m := cached.(map[string]string)
+	m, ok := cached.(map[string]string)
+	if !ok {
+		return nil, nil
+	}
 	return m[projectID], nil
 }
